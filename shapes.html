@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تركيب الأشكال للأطفال</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f9ff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            user-select: none;
+        }
+        h1 {
+            color: #6a5acd;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .holes-row, .shapes-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            min-height: 120px;
+        }
+        .shape-hole {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .shape-hole::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: 60%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .shape-name {
+            position: absolute;
+            bottom: -25px;
+            right: 0;
+            left: 0;
+            text-align: center;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .draggable-shape {
+            width: 80px;
+            height: 80px;
+            font-size: 3em;
+            cursor: grab;
+            margin: 10px;
+            transition: transform 0.2s;
+            text-align: center;
+            line-height: 80px;
+            z-index: 10;
+        }
+        .draggable-shape:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .star-icon {
+            font-size: 2em;
+            color: #fdcb6e;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff7675;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .reset-btn {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .reset-btn:hover {
+            transform: scale(1.05);
+        }
+        .correct {
+            animation: pulse 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .error {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>لعبة تركيب الأشكال 🧩</h1>
+        <p>اسحب كل شكل إلى مكانه الصحيح!</p>
+        
+        <div class="stars-container" id="stars-container"></div>
+        
+        <div class="holes-row" id="holes-row"></div>
+        <div class="shapes-row" id="shapes-row"></div>
+        
+        <button class="reset-btn" onclick="resetGame()">إعادة اللعب</button>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <audio id="correct-sound" src="https://www.soundjay.com/buttons/sounds/button-02.mp3"></audio>
+    <audio id="error-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+    <audio id="win-sound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3"></audio>
+    <audio id="drag-sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+
+    <script>
+        // تعريف جميع الأشكال مع SVG الخاص بها
+        const shapes = [
+            { 
+                type: 'circle', 
+                emoji: '🔴', 
+                name: 'دائرة',
+                svg: `<circle cx="50" cy="50" r="45" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'square', 
+                emoji: '🟦', 
+                name: 'مربع',
+                svg: `<rect x="10" y="10" width="80" height="80" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'triangle', 
+                emoji: '🔺', 
+                name: 'مثلث',
+                svg: `<polygon points="50,10 90,90 10,90" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'star', 
+                emoji: '⭐', 
+                name: 'نجمة',
+                svg: `<path d="M50,10 L61,39 L92,39 L67,59 L78,88 L50,70 L22,88 L33,59 L8,39 L39,39 Z" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'heart', 
+                emoji: '❤️', 
+                name: 'قلب',
+                svg: `<path d="M50,30 Q60,10 70,30 T90,50 Q80,70 50,90 Q20,70 10,50 Q10,30 30,30 Q40,10 50,30" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'diamond', 
+                emoji: '💠', 
+                name: 'معين',
+                svg: `<polygon points="50,10 90,50 50,90 10,50" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'pentagon', 
+                emoji: '⬟', 
+                name: 'خماسي',
+                svg: `<polygon points="50,10 85,35 70,80 30,80 15,35" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'hexagon', 
+                emoji: '⬢', 
+                name: 'سداسي',
+                svg: `<polygon points="50,10 85,30 85,70 50,90 15,70 15,30" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'cloud', 
+                emoji: '☁️', 
+                name: 'سحابة',
+                svg: `<path d="M20,50 Q10,40 20,30 Q15,20 30,20 Q35,10 45,20 Q60,15 65,30 Q80,30 80,40 Q90,40 85,50 Q90,60 80,60 Q80,70 65,70 Q60,85 45,80 Q35,90 30,80 Q15,80 20,70 Q10,60 20,50" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            },
+            { 
+                type: 'moon', 
+                emoji: '🌙', 
+                name: 'قمر',
+                svg: `<path d="M70,20 Q90,50 70,80 Q50,80 30,50 Q50,20 70,20" fill="none" stroke="#6a5acd" stroke-width="5"/>`
+            }
+        ];
+
+        // المتغيرات الأساسية
+        let currentLevel = 1;
+        let matchedShapes = 0;
+        let currentShapes = [];
+        let starsEarned = 0;
+        const shapesPerLevel = 4;
+        
+        // تهيئة اللعبة
+        function initGame() {
+            const holesRow = document.getElementById('holes-row');
+            const shapesRow = document.getElementById('shapes-row');
+            
+            holesRow.innerHTML = '';
+            shapesRow.innerHTML = '';
+            
+            // اختيار أشكال عشوائية للمستوى الحالي
+            currentShapes = getRandomShapes(shapesPerLevel);
+            matchedShapes = 0;
+            starsEarned = 0;
+            
+            // إنشاء النجوم المخفية
+            updateStars();
+            
+            // إنشاء الثقوب (الإطارات)
+            currentShapes.forEach(shape => {
+                const hole = document.createElement('div');
+                hole.className = `shape-hole`;
+                hole.dataset.shape = shape.type;
+                hole.id = `hole-${shape.type}`;
+                
+                // إنشاء SVG للإطار
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 100 100');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.innerHTML = shape.svg;
+                
+                hole.appendChild(svg);
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'shape-name';
+                nameSpan.textContent = shape.name;
+                hole.appendChild(nameSpan);
+                
+                hole.addEventListener('dragover', dragOver);
+                hole.addEventListener('drop', drop);
+                
+                holesRow.appendChild(hole);
+            });
+            
+            // إنشاء الأشكال القابلة للسحب (بترتيب عشوائي)
+            const shuffledShapes = [...currentShapes].sort(() => Math.random() - 0.5);
+            
+            shuffledShapes.forEach(shape => {
+                const shapeElement = document.createElement('div');
+                shapeElement.className = `draggable-shape`;
+                shapeElement.dataset.shape = shape.type;
+                shapeElement.draggable = true;
+                shapeElement.textContent = shape.emoji;
+                
+                shapeElement.addEventListener('dragstart', dragStart);
+                
+                shapesRow.appendChild(shapeElement);
+            });
+        }
+        
+        // الحصول على أشكال عشوائية
+        function getRandomShapes(count) {
+            const shuffled = [...shapes].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, count);
+        }
+        
+        // تحديث النجوم
+        function updateStars() {
+            const container = document.getElementById('stars-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < currentShapes.length; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-icon';
+                star.textContent = '⭐';
+                star.style.opacity = i < starsEarned ? '1' : '0';
+                container.appendChild(star);
+            }
+        }
+        
+        // عرض التنبيه
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = isError ? '#ff7675' : '#4CAF50';
+            notification.style.opacity = '1';
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+            }, 2000);
+        }
+        
+        // إعادة تعيين اللعبة
+        function resetGame() {
+            currentLevel = 1;
+            initGame();
+        }
+        
+        // السحب والإفلات
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.shape);
+            document.getElementById('drag-sound').play();
+        }
+        
+        function dragOver(e) {
+            e.preventDefault();
+        }
+        
+        function drop(e) {
+            e.preventDefault();
+            const shapeType = e.dataTransfer.getData('text/plain');
+            const hole = e.target.closest('.shape-hole');
+            
+            if (!hole) return;
+            
+           if (hole.dataset.shape === shapeType) {
+    const shape = document.querySelector(`.draggable-shape[data-shape="${shapeType}"]`);
+
+    hole.querySelector('svg').remove(); // ✅ إزالة الإطار
+    hole.appendChild(shape);
+
+    shape.style.position = 'absolute';
+    shape.style.top = '50%';
+    shape.style.left = '50%';
+    shape.style.transform = 'translate(-50%, -50%)';
+    shape.style.width = '100px';   // ✅ ليأخذ حجم الإطار بالضبط
+    shape.style.height = '100px';  // ✅ نفس الشي
+    shape.style.lineHeight = '100px';
+    shape.style.fontSize = '3.5em'; // أو عدل الحجم حسب الحاجة
+
+    shape.classList.add('correct');
+
+    document.getElementById('correct-sound').play();
+    matchedShapes++;
+    starsEarned++;
+    updateStars();
+
+    if (matchedShapes === currentShapes.length) {
+        setTimeout(() => {
+            document.getElementById('win-sound').play();
+            showNotification(`ممتاز! أكملت المستوى ${currentLevel}!`, false);
+            currentLevel++;
+            setTimeout(initGame, 2000);
+        }, 500);
+    } else {
+        showNotification('أحسنت!', false);
+    }
+}
+ else {
+                document.getElementById('error-sound').play();
+                showNotification('حاول مرة أخرى!', true);
+                hole.classList.add('error');
+                setTimeout(() => hole.classList.remove('error'), 500);
+            }
+        }
+        
+        // بدء اللعبة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

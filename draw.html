@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kids Drawing Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(to bottom, #ffe4e1, #ffebcd);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding-top: 30px;
+    }
+    canvas {
+      border: 5px dashed #ffb6c1;
+      background: #fff8dc;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      touch-action: none;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      color: #ff1493;
+    }
+    button {
+      margin-top: 10px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border-radius: 12px;
+      border: none;
+      background-color: #87ceeb;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #00bfff;
+    }
+    .stars {
+      margin-top: 10px;
+      font-size: 24px;
+      color: gold;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="drawCanvas" width="300" height="400"></canvas>
+  <div class="stars" id="stars"></div>
+  <div class="message" id="msg"></div>
+  <button onclick="nextShape()">Next Shape</button>
+
+  <audio id="successSound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_7d0f436b0c.mp3"></audio>
+  <audio id="failSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_9703e3ee83.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let points = [];
+    let currentShape = 0;
+
+    const successSound = document.getElementById("successSound");
+    const failSound = document.getElementById("failSound");
+
+    const shapes = [
+      { type: 'line', x1: 150, y1: 50, x2: 150, y2: 350 },
+      { type: 'line', x1: 50, y1: 200, x2: 250, y2: 200 },
+      { type: 'circle', cx: 150, cy: 200, r: 100 },
+      { type: 'line', x1: 50, y1: 50, x2: 250, y2: 350 },
+      { type: 'line', x1: 250, y1: 50, x2: 50, y2: 350 },
+      { type: 'circle', cx: 150, cy: 200, r: 50 },
+      { type: 'line', x1: 150, y1: 100, x2: 150, y2: 300 },
+      { type: 'line', x1: 100, y1: 50, x2: 200, y2: 350 },
+      { type: 'line', x1: 100, y1: 200, x2: 200, y2: 200 },
+      { type: 'circle', cx: 150, cy: 150, r: 70 },
+      { type: 'line', x1: 50, y1: 100, x2: 250, y2: 300 },
+      { type: 'line', x1: 250, y1: 100, x2: 50, y2: 300 },
+      { type: 'circle', cx: 150, cy: 250, r: 60 },
+      { type: 'line', x1: 100, y1: 100, x2: 200, y2: 100 },
+      { type: 'line', x1: 100, y1: 300, x2: 200, y2: 300 },
+      { type: 'circle', cx: 150, cy: 100, r: 40 },
+      { type: 'circle', cx: 150, cy: 300, r: 40 },
+      { type: 'line', x1: 50, y1: 150, x2: 250, y2: 150 },
+      { type: 'line', x1: 50, y1: 250, x2: 250, y2: 250 },
+      { type: 'circle', cx: 150, cy: 200, r: 80 },
+    ];
+
+    function drawShape() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'gray';
+      ctx.setLineDash([10, 10]);
+      ctx.lineWidth = 4;
+      const shape = shapes[currentShape];
+      ctx.beginPath();
+      if (shape.type === 'line') {
+        ctx.moveTo(shape.x1, shape.y1);
+        ctx.lineTo(shape.x2, shape.y2);
+      } else if (shape.type === 'circle') {
+        ctx.arc(shape.cx, shape.cy, shape.r, 0, 2 * Math.PI);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function startDraw(x, y) {
+      drawing = true;
+      points = [{ x, y }];
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+
+    function draw(x, y) {
+      if (!drawing) return;
+      points.push({ x, y });
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = '#ff69b4';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }
+
+    function endDraw() {
+      drawing = false;
+      checkAccuracy();
+    }
+
+    function getLineDistance(p1, p2) {
+      return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+    }
+
+    function checkAccuracy() {
+      const shape = shapes[currentShape];
+      let correct = 0;
+      points.forEach(p => {
+        let dist = 1000;
+        if (shape.type === 'line') {
+          const dx = shape.x2 - shape.x1;
+          const dy = shape.y2 - shape.y1;
+          const lenSq = dx * dx + dy * dy;
+          const t = ((p.x - shape.x1) * dx + (p.y - shape.y1) * dy) / lenSq;
+          const projX = shape.x1 + t * dx;
+          const projY = shape.y1 + t * dy;
+          dist = getLineDistance(p, { x: projX, y: projY });
+        } else if (shape.type === 'circle') {
+          const d = getLineDistance(p, { x: shape.cx, y: shape.cy });
+          dist = Math.abs(d - shape.r);
+        }
+        if (dist < 20) correct++;
+      });
+      const percent = (correct / points.length) * 100;
+      const msg = document.getElementById('msg');
+      const stars = document.getElementById('stars');
+      if (percent >= 75) {
+        msg.textContent = '🎉 Great Job!';
+        successSound.play();
+        const starCount = percent >= 95 ? 3 : percent >= 85 ? 2 : 1;
+        stars.innerHTML = '⭐'.repeat(starCount);
+      } else {
+        msg.textContent = '❌ Try Again!';
+        failSound.play();
+        stars.innerHTML = '';
+        setTimeout(() => {
+          msg.textContent = '';
+          drawShape();
+        }, 1000);
+      }
+    }
+
+    function nextShape() {
+      currentShape = (currentShape + 1) % shapes.length;
+      document.getElementById('msg').textContent = '';
+      document.getElementById('stars').textContent = '';
+      drawShape();
+    }
+
+    canvas.addEventListener('touchstart', e => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      startDraw(touch.clientX - rect.left, touch.clientY - rect.top);
+    });
+    canvas.addEventListener('touchmove', e => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      draw(touch.clientX - rect.left, touch.clientY - rect.top);
+    });
+    canvas.addEventListener('touchend', endDraw);
+
+    canvas.addEventListener('mousedown', e => {
+      const rect = canvas.getBoundingClientRect();
+      startDraw(e.clientX - rect.left, e.clientY - rect.top);
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!drawing) return;
+      const rect = canvas.getBoundingClientRect();
+      draw(e.clientX - rect.left, e.clientY - rect.top);
+    });
+    canvas.addEventListener('mouseup', endDraw);
+
+    drawShape();
+  </script>
+</body>
+</html>

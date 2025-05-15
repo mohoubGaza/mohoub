@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تعليم الأرقام 🔢</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            user-select: none;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #6a5acd;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .game-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+            z-index: -1;
+            border-radius: 35px;
+            opacity: 0.3;
+        }
+        .number-display {
+            font-size: 8em;
+            margin: 20px 0;
+            color: #6a5acd;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .number-display:hover {
+            transform: scale(1.05);
+        }
+        .quantity-display {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+        .quantity-item {
+            font-size: 2em;
+            transition: all 0.3s;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .number-option {
+            background: #fdcb6e;
+            color: white;
+            font-size: 3em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            aspect-ratio: 1/1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .number-option::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0));
+            transform: rotate(45deg);
+            transition: all 0.3s;
+            opacity: 0;
+        }
+        .number-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .number-option:hover::before {
+            opacity: 1;
+            animation: shine 1.5s infinite;
+        }
+        @keyframes shine {
+            0% { transform: rotate(45deg) translate(-30%, -30%); }
+            100% { transform: rotate(45deg) translate(30%, 30%); }
+        }
+        .language-toggle {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .toggle-btn {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .toggle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .toggle-btn.active {
+            background: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+        }
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .star-icon {
+            font-size: 2em;
+            color: #fdcb6e;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .star-icon.empty {
+            color: #ddd;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .notification.error {
+            background: #ff7675;
+        }
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #f3f3f3;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #6a5acd, #a29bfe);
+            width: 0%;
+            transition: width 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.6) 50%, 
+                rgba(255,255,255,0) 100%);
+            animation: progressShine 2s infinite;
+        }
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .level-display {
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #6a5acd;
+            font-weight: bold;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: confettiFall 5s linear forwards;
+        }
+        #number-display {
+    display: none;
+}
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(1000px) rotate(720deg); opacity: 0; }
+        }
+        .game-menu {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .menu-btn {
+            background: #6a5acd;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .menu-btn:hover {
+            background: #5a4abd;
+            transform: translateY(-2px);
+        }
+        .trophy-icon {
+            font-size: 1.5em;
+            margin-left: 10px;
+        }
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .number-display {
+                font-size: 5em;
+                height: 100px;
+            }
+            .toggle-btn {
+                padding: 10px 15px;
+                font-size: 1em;
+            }
+        }
+        @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>لعبة تعليم الأرقام 🔢 <span class="trophy-icon">🏆</span></h1>
+        
+        <div class="level-display">المستوى: <span id="level-text">1</span></div>
+        
+        <div class="game-menu">
+            <button class="menu-btn" id="help-btn">مساعدة ℹ️</button>
+            <button class="menu-btn" id="sound-btn">الصوت 🔈</button>
+            <button class="menu-btn" id="reset-btn">إعادة تشغيل 🔄</button>
+        </div>
+        
+        <div class="language-toggle">
+            <button class="toggle-btn active" id="arabic-btn">عربي 🇸🇦</button>
+            <button class="toggle-btn" id="english-btn">English 🇬🇧</button>
+        </div>
+        
+        <div class="number-display" id="number-display">٠</div>
+        
+        <div class="quantity-display" id="quantity-display">
+            <!-- يتم ملء الكميات ديناميكياً -->
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="stars-container" id="stars-container">
+            <div class="star-icon">⭐</div>
+            <div class="star-icon">⭐</div>
+            <div class="star-icon">⭐</div>
+        </div>
+        
+        <div class="options-container" id="options-container">
+            <!-- يتم ملء الخيارات ديناميكياً -->
+        </div>
+        
+        <div id="notification" class="notification"></div>
+        
+        <audio id="correct-sound" src="https://www.soundjay.com/buttons/sounds/button-02.mp3"></audio>
+        <audio id="error-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+        <audio id="levelup-sound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3"></audio>
+        <audio id="number-sound-ar"></audio>
+        <audio id="number-sound-en"></audio>
+    </div>
+
+    <script>
+        // الأرقام العربية والإنجليزية مع إيموجيز تمثل الكميات
+const numbers = [
+    { arabic: '٠', english: '0', wordAr: 'صفر', wordEn: 'Zero', image: '' },
+    { arabic: '١', english: '1', wordAr: 'واحد', wordEn: 'One', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">' },
+    { arabic: '٢', english: '2', wordAr: 'اثنان', wordEn: 'Two', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(2) },
+    { arabic: '٣', english: '3', wordAr: 'ثلاثة', wordEn: 'Three', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(3) },
+    { arabic: '٤', english: '4', wordAr: 'أربعة', wordEn: 'Four', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(4) },
+    { arabic: '٥', english: '5', wordAr: 'خمسة', wordEn: 'Five', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(5) },
+    { arabic: '٦', english: '6', wordAr: 'ستة', wordEn: 'Six', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(6) },
+    { arabic: '٧', english: '7', wordAr: 'سبعة', wordEn: 'Seven', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(7) },
+    { arabic: '٨', english: '8', wordAr: 'ثمانية', wordEn: 'Eight', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(8) },
+    { arabic: '٩', english: '9', wordAr: 'تسعة', wordEn: 'Nine', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(9) },
+    { arabic: '١٠', english: '10', wordAr: 'عشرة', wordEn: 'Ten', image: '<img src="https://emojicdn.elk.sh/🍎?size=30" style="margin:0 2px; width:50px; height:50px;">'.repeat(10) }
+];
+
+
+
+function displayQuantity() {
+    quantityDisplay.innerHTML = currentNumber.image;
+}
+
+        // المتغيرات الأساسية
+        let currentLanguage = 'arabic';
+        let currentNumber = null;
+        let correctAnswers = 0;
+        let stars = 3;
+        let level = 1;
+        const numbersPerLevel = 5;
+        let soundEnabled = true;
+        let gameStarted = false;
+        
+        // عناصر DOM
+        const arabicBtn = document.getElementById('arabic-btn');
+        const englishBtn = document.getElementById('english-btn');
+        const numberDisplay = document.getElementById('number-display');
+        const quantityDisplay = document.getElementById('quantity-display');
+        const optionsContainer = document.getElementById('options-container');
+        const starsContainer = document.getElementById('stars-container');
+        const notification = document.getElementById('notification');
+        const progressBar = document.getElementById('progress-bar');
+        const levelText = document.getElementById('level-text');
+        const helpBtn = document.getElementById('help-btn');
+        const soundBtn = document.getElementById('sound-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        // تهيئة اللعبة
+        function initGame() {
+            // تحميل التقدم المحفوظ
+            loadProgress();
+            
+            updateLanguageButtons();
+            updateSoundButton();
+            generateNewNumber();
+            updateStars();
+            updateProgress();
+            updateLevelDisplay();
+            
+            gameStarted = true;
+        }
+        
+        // تبديل اللغة
+        arabicBtn.addEventListener('click', () => {
+            currentLanguage = 'arabic';
+            updateLanguageButtons();
+            generateNewNumber();
+            saveProgress();
+        });
+        
+        englishBtn.addEventListener('click', () => {
+            currentLanguage = 'english';
+            updateLanguageButtons();
+            generateNewNumber();
+            saveProgress();
+        });
+        
+        function updateLanguageButtons() {
+            arabicBtn.classList.toggle('active', currentLanguage === 'arabic');
+            englishBtn.classList.toggle('active', currentLanguage === 'english');
+        }
+        
+        // تبديل الصوت
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            updateSoundButton();
+            saveProgress();
+        });
+        
+        function updateSoundButton() {
+            soundBtn.innerHTML = soundEnabled ? 'الصوت 🔈' : 'الصوت 🔇';
+        }
+        
+        // إعادة تشغيل اللعبة
+        resetBtn.addEventListener('click', () => {
+            if (confirm('هل تريد إعادة تشغيل اللعبة؟ ستفقد تقدمك الحالي.')) {
+                resetGame();
+            }
+        });
+        
+        // عرض المساعدة
+        helpBtn.addEventListener('click', () => {
+            alert(`🎮 كيفية اللعب:
+1. استمع إلى الرقم الذي يتم نطقه
+2. انقر على الرقم الصحيح من بين الخيارات
+3. كل 5 إجابات صحيحة تتقدم للمستوى التالي
+4. لديك 3 نجوم، تفقد واحدة مع كل خطأ
+
+🎯 المميزات:
+- تعلم الأرقام بالعربية والإنجليزية
+- عرض الكميات باستخدام الإيموجيز
+- نظام مستويات متدرج
+- أصوات وتشجيع عند الإجابة الصحيحة`);
+        });
+        
+        // توليد رقم جديد وعشوائي
+        function generateNewNumber() {
+// أخذ 5 أرقام عشوائية من 0 إلى 10
+const shuffledNumbers = shuffleArray(numbers.slice()); // نسخة shuffled
+const availableNumbers = shuffledNumbers.slice(0, 5); // أول 5 أرقام
+            
+            // اختيار رقم عشوائي
+            currentNumber = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+            
+            // عرض الرقم
+            numberDisplay.textContent = currentNumber[currentLanguage];
+            
+            // عرض الكمية باستخدام الإيموجيز
+            displayQuantity();
+            
+            // تشغيل صوت الرقم
+            playNumberSound();
+            
+            // توليد خيارات الإجابة
+            generateOptions(availableNumbers);
+        }
+  
+
+function isEmojiSupported() {
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillText('🍎', 0, 0);
+        return ctx.getImageData(0, 0, 1, 1).data[3] > 0;
+    } catch (e) {
+        return false;
+    }
+}
+        
+        // تشغيل صوت الرقم
+        function playNumberSound() {
+            if (!soundEnabled || !gameStarted) return;
+            
+            const soundElement = currentLanguage === 'arabic' 
+                ? document.getElementById('number-sound-ar') 
+                : document.getElementById('number-sound-en');
+            
+            // يمكنك استبدال هذه المصادر بملفات صوتية مسجلة مسبقاً
+            soundElement.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${
+                currentLanguage === 'arabic' ? 'ar' : 'en'
+            }&q=${encodeURIComponent(
+                currentLanguage === 'arabic' ? currentNumber.wordAr : currentNumber.wordEn
+            )}&client=tw-ob`;
+            
+            soundElement.play().catch(e => console.log("لا يمكن تشغيل الصوت:", e));
+        }
+        
+        // توليد خيارات الإجابة
+        function generateOptions(availableNumbers) {
+            optionsContainer.innerHTML = '';
+            
+            // إنشاء مصفوفة تحتوي على الرقم الصحيح و3 أرقام عشوائية أخرى
+            let options = [currentNumber];
+            while (options.length < 4 && options.length < availableNumbers.length) {
+                const randomNum = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+                if (!options.some(opt => opt.arabic === randomNum.arabic)) {
+                    options.push(randomNum);
+                }
+            }
+            
+            // خلط الخيارات
+            options = shuffleArray(options);
+            
+            // إنشاء عناصر الخيارات
+            options.forEach(num => {
+                const option = document.createElement('div');
+                option.className = 'number-option';
+                option.textContent = num[currentLanguage];
+                option.dataset.arabic = num.arabic;
+                option.dataset.english = num.english;
+                
+                // تأثير ظهور متدرج
+                option.style.animation = `fadeIn 0.5s ${options.indexOf(num) * 0.1}s both`;
+                
+                option.addEventListener('click', () => checkAnswer(num));
+                
+                optionsContainer.appendChild(option);
+            });
+        }
+        
+        // خلط المصفوفة
+        function shuffleArray(array) {
+            return [...array].sort(() => Math.random() - 0.5);
+        }
+        
+        // التحقق من الإجابة
+        function checkAnswer(selectedNumber) {
+            if (selectedNumber.arabic === currentNumber.arabic) {
+                // إجابة صحيحة
+                if (soundEnabled) document.getElementById('correct-sound').play();
+                correctAnswers++;
+                
+                // تأثير نجاح
+                numberDisplay.style.transform = 'scale(1.1)';
+                numberDisplay.style.color = '#4CAF50';
+                setTimeout(() => {
+                    numberDisplay.style.transform = 'scale(1)';
+                    numberDisplay.style.color = '#6a5acd';
+                }, 500);
+                
+                // عرض إشعار
+                showNotification('أحسنت! ✔️');
+                
+                // تحديث التقدم
+                updateProgress();
+                
+                // توليد رقم جديد بعد تأخير بسيط
+                setTimeout(() => {
+                    if (correctAnswers >= numbersPerLevel) {
+                        levelUp();
+                    } else {
+                        generateNewNumber();
+                    }
+                }, 1000);
+            } else {
+                // إجابة خاطئة
+                if (soundEnabled) document.getElementById('error-sound').play();
+                stars--;
+                updateStars();
+                
+                // تأثير خطأ
+                const selectedOption = [...optionsContainer.children].find(
+                    opt => opt.dataset.arabic === selectedNumber.arabic
+                );
+                if (selectedOption) {
+                    selectedOption.style.transform = 'scale(0.9)';
+                    selectedOption.style.backgroundColor = '#ff7675';
+                    setTimeout(() => {
+                        selectedOption.style.transform = 'scale(1)';
+                        selectedOption.style.backgroundColor = '#fdcb6e';
+                    }, 500);
+                }
+                
+                // عرض إشعار خطأ
+                showNotification('حاول مرة أخرى! ❌', true);
+                
+                if (stars <= 0) {
+                    setTimeout(() => {
+                        showNotification('انتهت النقاط! ابدأ من جديد', true);
+                        resetGame();
+                    }, 1500);
+                }
+            }
+        }
+        
+        // التقدم للمستوى التالي
+        function levelUp() {
+           if (soundEnabled) document.getElementById('levelup-sound').play();
+    level++;
+    correctAnswers = 0;
+    stars = 3; // إعادة النجوم إلى 3 عند بدء مستوى جديد
+    updateStars();
+            
+            showNotification(`تهانينا! المستوى ${level-1} اكتمل 🎉`);
+            createConfetti();
+            updateStars();
+            updateProgress();
+            updateLevelDisplay();
+            saveProgress();
+            
+            setTimeout(() => {
+                generateNewNumber();
+            }, 2000);
+        }
+        
+        // إنشاء تأثير كونفيتي
+        function createConfetti() {
+            const colors = ['#fdcb6e', '#6a5acd', '#4CAF50', '#ff7675', '#a29bfe'];
+            const container = document.querySelector('.game-container');
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                container.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+        
+        // إعادة تعيين اللعبة
+        function resetGame() {
+            level = 1;
+            correctAnswers = 0;
+            stars = 3;
+            updateStars();
+            updateProgress();
+            updateLevelDisplay();
+            generateNewNumber();
+            saveProgress();
+        }
+        
+        // تحديث النجوم
+function updateStars() {
+    starsContainer.innerHTML = '';
+    for (let i = 0; i < stars; i++) {
+        const star = document.createElement('div');
+        star.className = 'star-icon';
+        star.textContent = '⭐';
+        starsContainer.appendChild(star);
+    }
+}
+
+        
+        // تحديث شريط التقدم
+        function updateProgress() {
+            const progress = (correctAnswers / numbersPerLevel) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // تحديث عرض المستوى
+        function updateLevelDisplay() {
+            levelText.textContent = level;
+        }
+        
+        // عرض الإشعارات
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.className = 'notification';
+            if (isError) notification.classList.add('error');
+            
+            // إيموجي حسب نوع الإشعار
+            const emoji = isError ? '❌' : '✔️';
+            notification.innerHTML = `${message} <span style="font-size:1.2em">${emoji}</span>`;
+            
+            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(-50%) translateY(0)';
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(-50%) translateY(-20px)';
+            }, 2000);
+        }
+        
+        // حفظ التقدم في localStorage
+        function saveProgress() {
+            const progress = {
+                level,
+                currentLanguage,
+                soundEnabled
+            };
+            localStorage.setItem('numberGameProgress', JSON.stringify(progress));
+        }
+        
+        // تحميل التقدم من localStorage
+        function loadProgress() {
+            const savedProgress = localStorage.getItem('numberGameProgress');
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                level = progress.level || 1;
+                currentLanguage = progress.currentLanguage || 'arabic';
+                soundEnabled = progress.soundEnabled !== undefined ? progress.soundEnabled : true;
+            }
+        }
+        
+        // بدء اللعبة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تعليم الأحرف العربية للأطفال</title>
+    <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f9ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .letter-display {
+            font-size: 120px;
+            color: #4d96ff;
+            margin: 20px 0;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .options-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .option {
+            font-size: 60px;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 15px;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
+            margin: 10px;
+            flex: 1;
+            min-width: 100px;
+            max-width: 120px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .option:hover {
+            transform: scale(1.1);
+            background-color: #e9ecef;
+        }
+
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+.emoji-name {
+    font-size: 16px;
+    display: block;
+    margin-top: 5px;
+    color: #333;
+}
+
+.option {
+    padding: 10px;
+    line-height: 1.3;
+}
+        .star {
+            font-size: 30px;
+            color: #ffd43b;
+            margin: 0 5px;
+            text-shadow: 0 0 5px rgba(255, 212, 59, 0.5);
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #51cf66;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            z-index: 10;
+            border-radius: 20px;
+        }
+
+        .message.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .message h2 {
+            font-size: 40px;
+            color: #51cf66;
+            margin-bottom: 20px;
+        }
+
+        .message p {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .success {
+            color: #51cf66;
+        }
+
+        .error {
+            color: #ff6b6b;
+        }
+
+        .restart-btn {
+            background-color: #4d96ff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .restart-btn:hover {
+            background-color: #3a7bd5;
+            transform: translateY(-2px);
+        }
+
+        .celebration {
+            position: absolute;
+            font-size: 30px;
+            opacity: 0;
+            z-index: 15;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .level-indicator {
+            font-size: 18px;
+            color: #4d96ff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>لعبة تعليم الأحرف العربية</h1>
+        <div class="level-indicator">المستوى: <span id="level">1</span></div>
+        <div class="stars-container" id="stars">
+            <span class="star">★</span>
+            <span class="star">★</span>
+            <span class="star">★</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <div class="letter-display" id="letter">أ</div>
+        <div class="options-container" id="options">
+            <div class="option" data-option="1">🐇</div>
+            <div class="option" data-option="2">🐥</div>
+            <div class="option" data-option="3">🍌</div>
+        </div>
+
+        <div class="message" id="message">
+            <h2 id="message-title">أحسنت!</h2>
+            <p id="message-text">لقد اخترت الإجابة الصحيحة</p>
+            <button class="restart-btn" id="restart-btn">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <audio id="correct-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrong-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+    <audio id="lose-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3"></audio>
+
+    <script>
+        // بيانات اللعبة
+        const letters = [
+            'أ', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي'
+        ];
+
+      const emojis = {
+    'أ': { correct: '🐇 أرنب', options: ['🐝 نحلة', '🚗 سيارة'] },
+    'ب': { correct: '🚌 باص', options: ['🐍 ثعبان', '🍎 تفاحة'] },
+    'ت': { correct: '🍓 توت', options: ['🐘 فيل', '🌞 شمس'] },
+    'ث': { correct: '👕 ثوب', options: ['🌼 زهرة', '🍇 عنب'] },
+    'ج': { correct: '🐫 جمل', options: ['🦁 أسد', '🍌 موزة'] },
+    'ح': { correct: '🐎 حصان', options: ['🐔 دجاجة', '🍫 شوكولاتة'] },
+    'خ': { correct: '🥬 خس', options: ['🌙 قمر', '🦓 حمار وحشي'] },
+    'د': { correct: '🐋 دولفين', options: ['🦒 زرافة', '🍉 بطيخ'] },
+    'ذ': { correct: '🌽 ذرة', options: ['🍯 عسل', '🚲 دراجة'] },
+    'ر': { correct: '🌫 رياح', options: ['🚀 صاروخ', '🌹 وردة'] },
+    'ز': { correct: '🦒 زرافة', options: ['🐱 قط', '🍔 برجر'] },
+    'س': { correct: '🐢 سلحفاة', options: ['🐊 تمساح', '🍇 عنب'] },
+    'ش': { correct: '🍫 شوكولاتة', options: ['🐍 ثعبان', '🐒 قرد'] },
+    'ص': { correct: '🌵 صبارة', options: ['🦋 فراشة', '🦓 حمار وحشي'] },
+    'ض': { correct: '🦷 ضرس', options: ['🍍 أناناس', '🦛 فرس نهر'] },
+    'ط': { correct: '🛫 طائرة', options: ['🦁 أسد', '🍒 كرز'] },
+    'ظ': { correct: '✉ ظرف', options: ['🌙 قمر', '🌻 دوار الشمس'] },
+    'ع': { correct: '🍇 عنب', options: ['🐄 بقرة', '🌙 قمر'] },
+    'غ': { correct: '🌫️ غيمة', options: ['🍋 ليمون', '🐘 فيل'] },
+    'ف': { correct: '🦋 فراشة', options: ['🛵 دراجة', '🍎 تفاحة'] },
+    'ق': { correct: '🐵 قرد', options: ['🍞 خبز', '🍉 بطيخ'] },
+    'ك': { correct: '🐱 كلب', options: ['🚗 سيارة', '🍌 موزة'] },
+    'ل': { correct: '🍋 ليمون', options: ['🌼 زهرة', '🚕 تاكسي'] },
+    'م': { correct: '🍌 موز', options: ['🐘 فيل', '🍫 شوكولاتة'] },
+    'ن': { correct: '🐦 نسر', options: ['🍊 برتقال', '🦛 فرس نهر'] },
+    'ه': { correct: '🌙 هلال', options: ['🐍 ثعبان', '🍩 دونات'] },
+    'و': { correct: '😀 وجه ', options: ['🦒 زرافة', '🍞 خبز'] },
+    'ي': { correct: '🦄 يونيكورن', options: ['🍇 عنب', '🐦 نسر'] }
+};
+
+
+        // عناصر DOM
+        const letterDisplay = document.getElementById('letter');
+        const optionsContainer = document.getElementById('options');
+        const starsContainer = document.getElementById('stars');
+        const progressBar = document.getElementById('progress');
+        const message = document.getElementById('message');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const restartBtn = document.getElementById('restart-btn');
+        const levelDisplay = document.getElementById('level');
+
+        // الأصوات
+        const correctSound = document.getElementById('correct-sound');
+        const wrongSound = document.getElementById('wrong-sound');
+        const winSound = document.getElementById('win-sound');
+        const loseSound = document.getElementById('lose-sound');
+
+        // حالة اللعبة
+        let currentLetter = '';
+        let correctEmoji = '';
+        let stars = 3;
+        let currentLevel = 1;
+        let exercisesInLevel = 5;
+        let completedExercises = 0;
+        let usedLetters = [];
+
+        // تهيئة اللعبة
+        function initGame() {
+            stars = 3;
+            currentLevel = 1;
+            completedExercises = 0;
+            usedLetters = [];
+            updateStars();
+            updateLevel();
+            nextExercise();
+        }
+
+        // تحديث عرض النجوم
+        function updateStars() {
+            const starsElements = starsContainer.querySelectorAll('.star');
+            starsElements.forEach((star, index) => {
+                if (index < stars) {
+                    star.style.opacity = '1';
+                } else {
+                    star.style.opacity = '0.3';
+                }
+            });
+        }
+
+        // تحديث المستوى
+        function updateLevel() {
+            levelDisplay.textContent = currentLevel;
+        }
+
+        // تحديث شريط التقدم
+        function updateProgress() {
+            const progress = (completedExercises / exercisesInLevel) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // توليد تمرين جديد
+        function nextExercise() {
+    if (completedExercises >= exercisesInLevel) {
+        levelComplete();
+        return;
+    }
+
+    let availableLetters = letters.filter(letter => !usedLetters.includes(letter));
+    if (availableLetters.length === 0) {
+        availableLetters = [...letters];
+        usedLetters = [];
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableLetters.length);
+    currentLetter = availableLetters[randomIndex];
+    usedLetters.push(currentLetter);
+
+    letterDisplay.textContent = currentLetter;
+
+    // الحصول على الخيارات الصحيحة والعشوائية
+    const currentEmojiData = emojis[currentLetter];
+    correctEmoji = currentEmojiData.correct.split(' ')[0]; // استخراج الإيموجي فقط
+    const correctEmojiText = currentEmojiData.correct;
+    const allOptions = [correctEmojiText, ...currentEmojiData.options];
+    
+    // خلط الخيارات
+    shuffleArray(allOptions);
+
+    // عرض الخيارات مع الأسماء
+    const optionElements = optionsContainer.querySelectorAll('.option');
+    optionElements.forEach((option, index) => {
+        const [emoji, text] = allOptions[index].split(' ');
+option.innerHTML = `${emoji}<br><span class="emoji-name">${text}</span>`;
+option.setAttribute('data-emoji', emoji); // <== نضيف هذه السطر
+        option.classList.remove('success', 'error');
+    });
+
+    updateProgress();
+}
+
+        // خلط المصفوفة
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // التحقق من الإجابة
+       function checkAnswer(selectedOption) {
+    const selectedEmoji = selectedOption.getAttribute('data-emoji');
+
+    const optionElements = optionsContainer.querySelectorAll('.option');
+
+    if (selectedEmoji === correctEmoji) {
+        // إجابة صحيحة
+        correctSound.play();
+        selectedOption.classList.add('success');
+
+        completedExercises++;
+        showMessage('أحسنت!', 'لقد اخترت الإجابة الصحيحة', true);
+
+        if (completedExercises >= exercisesInLevel) {
+            levelComplete();
+        } else {
+            setTimeout(() => {
+                nextExercise();
+            }, 2000);
+        }
+    } else {
+        // إجابة خاطئة
+        wrongSound.play();
+        selectedOption.classList.add('error');
+
+        // أضف اللون الصحيح للإجابة الصحيحة
+        optionElements.forEach(option => {
+            if (option.getAttribute('data-emoji') === correctEmoji) {
+                option.classList.add('success');
+            }
+        });
+
+        stars--;
+        updateStars();
+
+        if (stars <= 0) {
+            loseSound.play();
+            showMessage('حاول مرة أخرى!', 'لقد نفذت جميع المحاولات', false);
+        } else {
+            showMessage('خطأ!', 'حاول مرة أخرى', false);
+            setTimeout(() => {
+                optionElements.forEach(option => {
+                    option.classList.remove('success', 'error');
+                });
+            }, 1500);
+        }
+    }
+}
+
+
+        // إكمال المستوى
+        function levelComplete() {
+            winSound.play();
+            showMessage(`مبروك!`, `لقد أكملت المستوى ${currentLevel}`, true);
+            currentLevel++;
+            completedExercises = 0;
+            usedLetters = [];
+            stars = 3;
+            updateStars();
+            updateLevel();
+            
+            setTimeout(() => {
+                nextExercise();
+            }, 2000);
+        }
+
+        // عرض رسالة
+        function showMessage(title, text, isSuccess) {
+            messageTitle.textContent = title;
+            messageText.textContent = text;
+            
+            if (isSuccess) {
+                messageTitle.className = 'success';
+                createCelebration();
+            } else {
+                messageTitle.className = 'error';
+            }
+            
+            message.classList.add('show');
+            
+            if (!isSuccess && stars <= 0) {
+                restartBtn.style.display = 'block';
+            } else {
+                restartBtn.style.display = 'none';
+                setTimeout(() => {
+                    message.classList.remove('show');
+                }, 1500);
+            }
+        }
+
+        // تأثيرات الاحتفال
+        function createCelebration() {
+            const container = document.querySelector('.container');
+            const emojis = ['🎉', '🎊', '✨', '🌟', '💫', '🥳', '👏'];
+            
+            for (let i = 0; i < 15; i++) {
+                const celebration = document.createElement('div');
+                celebration.className = 'celebration';
+                celebration.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                celebration.style.left = `${Math.random() * 100}%`;
+                celebration.style.top = `${Math.random() * 100}%`;
+                celebration.style.animation = `float ${Math.random() * 2 + 1}s forwards`;
+                container.appendChild(celebration);
+                
+                setTimeout(() => {
+                    celebration.remove();
+                }, 1000);
+            }
+        }
+
+        // أحداث النقر
+        optionsContainer.addEventListener('click', (e) => {
+    const option = e.target.closest('.option');
+    if (option) {
+        checkAnswer(option);
+    }
+});
+
+
+        restartBtn.addEventListener('click', () => {
+            message.classList.remove('show');
+            initGame();
+        });
+
+        // بدء اللعبة
+        initGame();
+    </script>
+</body>
+</html>

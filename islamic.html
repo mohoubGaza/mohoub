@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تعاليم الإسلام للأطفال</title>
+    <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2e8b57;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subtitle {
+            color: #4682b4;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        .game-box {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: #e6f7ff;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px dashed #4682b4;
+        }
+        
+        .info-text {
+            font-size: 1.3em;
+            color: #2e8b57;
+            line-height: 1.5;
+        }
+        
+        .question {
+            font-size: 1.4em;
+            color: #4682b4;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .option {
+            background-color: #ffd700;
+            color: #333;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 120px;
+            max-width: 200px;
+        }
+        
+        .option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .option.correct {
+            background-color: #2e8b57;
+            color: white;
+            animation: pulse 0.5s;
+        }
+        
+        .option.wrong {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .feedback {
+            font-size: 1.3em;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+        
+        .correct-feedback {
+            color: #2e8b57;
+            font-weight: bold;
+        }
+        
+        .wrong-feedback {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .star {
+            font-size: 2.5em;
+            color: #ddd;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        
+        .star.filled {
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+        }
+        
+        .next-btn {
+            background-color: #4682b4;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+            margin: 0 auto;
+        }
+        
+        .next-btn:hover {
+            background-color: #3a6d99;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.4s;
+        }
+        
+        .character {
+            font-size: 4em;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        
+        .character.happy {
+            color: #ffd700;
+            transform: rotate(10deg);
+        }
+        
+        .character.sad {
+            color: #ff6b6b;
+            transform: rotate(-10deg);
+        }
+        
+        .score-display {
+            font-size: 1.3em;
+            color: #4682b4;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .option {
+                width: 80%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌙 لعبة تعاليم الإسلام 🌙</h1>
+        <p class="subtitle">تعلم وتفاعل مع تعاليم ديننا الحنيف</p>
+        
+        <div class="game-box">
+            <div class="character">👦</div>
+            <div class="score-display">النقاط: <span id="score">0</span></div>
+            <div class="stars-container">
+                <div class="star">⭐</div>
+                <div class="star">⭐</div>
+                <div class="star">⭐</div>
+                <div class="star">⭐</div>
+                <div class="star">⭐</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress"></div>
+            </div>
+            
+            <div class="info-box">
+                <p class="info-text" id="info-text">مرحبًا بك في لعبة تعاليم الإسلام! هيا نبدأ التعلم</p>
+            </div>
+            
+            <div class="question" id="question">ما هو أول شيء نتعلمه في الإسلام؟</div>
+            
+            <div class="options" id="options">
+                <button class="option" onclick="checkAnswer(0)">الصلاة</button>
+                <button class="option" onclick="checkAnswer(1)">الشهادتان</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">السؤال التالي →</button>
+        </div>
+    </div>
+
+    <script>
+        // بيانات الأسئلة والمعلومات
+        const questions = [
+            {
+                info: "أول شيء نتعلمه في الإسلام هو الشهادتان: أشهد أن لا إله إلا الله وأشهد أن محمدًا رسول الله.",
+                question: "ما هو أول شيء نتعلمه في الإسلام؟",
+                options: ["الصلاة", "الشهادتان"],
+                correct: 1,
+                feedback: "أحسنت! الشهادتان هي مفتاح الدخول إلى الإسلام."
+            },
+            {
+                info: "الصلاة هي الركن الثاني من أركان الإسلام وهي عماد الدين.",
+                question: "كم عدد الصلوات المفروضة في اليوم؟",
+                options: ["ثلاث صلوات", "خمس صلوات"],
+                correct: 1,
+                feedback: "صحيح! المسلم يصلي خمس صلوات في اليوم: الفجر، الظهر، العصر، المغرب والعشاء."
+            },
+            {
+                info: "الصدقة تطهر النفس وتزكي المال وتجلب البركة.",
+                question: "ماذا يحدث عندما نعطي الصدقة؟",
+                options: ["ينقص مالنا", "يزيد بركة مالنا"],
+                correct: 1,
+                feedback: "أحسنت! الصدقة تزيد البركة في المال ولا تنقصه."
+            },
+            {
+                info: "رمضان هو شهر الصوم الذي أنزل فيه القرآن.",
+                question: "ما هو أفضل شهر في السنة؟",
+                options: ["شهر رجب", "شهر رمضان"],
+                correct: 1,
+                feedback: "صحيح! رمضان هو سيد الشهور وفيه ليلة القدر خير من ألف شهر."
+            },
+            {
+                info: "بر الوالدين من أعظم الأعمال عند الله تعالى.",
+                question: "كيف نبر والدينا؟",
+                options: ["بالطاعة والإحسان", "بالهدايا فقط"],
+                correct: 0,
+                feedback: "أحسنت! بر الوالدين يكون بالطاعة والإحسان والكلام الطيب والمعاملة الحسنة."
+            },
+            {
+                info: "الأمانة من صفات المؤمن وهي خلق الأنبياء.",
+                question: "ماذا نفعل إذا أعطانا أحد أمانة؟",
+                options: ["نحافظ عليها", "نستخدمها كما نريد"],
+                correct: 0,
+                feedback: "صحيح! يجب الحفاظ على الأمانة وإرجاعها إلى صاحبها كما هي."
+            },
+            {
+                info: "النبي محمد ﷺ هو خاتم الأنبياء والمرسلين.",
+                question: "من هو آخر الأنبياء؟",
+                options: ["النبي عيسى", "النبي محمد ﷺ"],
+                correct: 1,
+                feedback: "أحسنت! النبي محمد ﷺ هو آخر الأنبياء وخاتم المرسلين."
+            },
+            {
+                info: "القرآن الكريم هو كلام الله المنزل على النبي محمد ﷺ.",
+                question: "ما هو كتاب المسلمين المقدس؟",
+                options: ["الإنجيل", "القرآن الكريم"],
+                correct: 1,
+                feedback: "صحيح! القرآن الكريم هو كتاب الله الذي أنزله على النبي محمد ﷺ."
+            },
+            {
+                info: "الكذب من صفات المنافقين وهو محرم في الإسلام.",
+                question: "ماذا نفعل عندما نخطئ؟",
+                options: ["نكذب لننجو", "نعترف بخطئنا ونعتذر"],
+                correct: 1,
+                feedback: "أحسنت! الاعتراف بالخطأ والاعتذار هو سلوك المسلم الصادق."
+            },
+            {
+                info: "الاستغفار يمحو الذنوب ويزيد الرزق ويجلب السكينة.",
+                question: "ماذا نقول عندما نرتكب خطأ؟",
+                options: ["لا شيء", "أستغفر الله"],
+                correct: 1,
+                feedback: "صحيح! الاستغفار يمحو الذنوب ويرضي الله تعالى."
+            }
+        ];
+
+        // متغيرات اللعبة
+let currentQuestion = 0;
+let score = 0;
+let stars = 0;
+let answered = false;
+let selectedQuestions = [];
+
+        // عناصر DOM
+        const infoTextEl = document.getElementById('info-text');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const nextBtnEl = document.getElementById('next-btn');
+        const scoreEl = document.getElementById('score');
+        const progressEl = document.getElementById('progress');
+        const characterEl = document.querySelector('.character');
+        const starEls = document.querySelectorAll('.star');
+
+       function initGame() {
+    // اختيار 5 أسئلة عشوائية
+    selectedQuestions = getRandomQuestions(5);
+    currentQuestion = 0;
+    score = 0;
+    stars = 0;
+    scoreEl.textContent = '0';
+    resetStars();
+    showQuestion();
+}
+// اختيار أسئلة عشوائية
+function getRandomQuestions(count) {
+    // نسخ مصفوفة الأسئلة الأصلية
+    const allQuestions = [...questions];
+    const randomQuestions = [];
+    
+    // التأكد من عدم تجاوز العدد الأقصى للأسئلة
+    count = Math.min(count, allQuestions.length);
+    
+    // اختيار أسئلة عشوائية
+    for (let i = 0; i < count; i++) {
+        const randomIndex = Math.floor(Math.random() * allQuestions.length);
+        randomQuestions.push(allQuestions[randomIndex]);
+        allQuestions.splice(randomIndex, 1); // إزالة السؤال المختار لتجنب التكرار
+    }
+    
+    return randomQuestions;
+}
+        // عرض السؤال الحالي
+        function showQuestion() {
+            answered = false;
+const q = selectedQuestions[currentQuestion];
+            
+            infoTextEl.textContent = q.info;
+            questionEl.textContent = q.question;
+            
+            // مسح التغذية الراجعة
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'feedback';
+            
+            // إعادة تعيين الأزرار
+            const optionButtons = optionsEl.querySelectorAll('.option');
+            optionButtons.forEach((btn, index) => {
+                btn.textContent = q.options[index];
+                btn.className = 'option';
+                btn.disabled = false;
+            });
+            
+            // إخفاء زر التالي
+            nextBtnEl.style.display = 'none';
+            
+            // تحديث شريط التقدم
+            progressEl.style.width = `${(currentQuestion / questions.length) * 100}%`;
+            
+            // إعادة تعيين الشخصية
+            characterEl.className = 'character';
+        }
+
+        // التحقق من الإجابة
+        function checkAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+            
+            const q = questions[currentQuestion];
+            const optionButtons = optionsEl.querySelectorAll('.option');
+            
+            // تعطيل جميع الأزرار
+            optionButtons.forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // تمييز الإجابة الصحيحة والخاطئة
+            optionButtons[selectedIndex].classList.add(selectedIndex === q.correct ? 'correct' : 'wrong');
+            optionButtons[q.correct].classList.add('correct');
+            
+            // عرض التغذية الراجعة
+            if (selectedIndex === q.correct) {
+                feedbackEl.textContent = q.feedback;
+                feedbackEl.classList.add('correct-feedback');
+                score += 10;
+                scoreEl.textContent = score;
+                characterEl.classList.add('happy');
+                
+                // زيادة النجوم
+                if (stars < 5) {
+                    stars++;
+                    updateStars();
+                }
+            } else {
+                feedbackEl.textContent = 'حاول مرة أخرى! ' + q.feedback;
+                feedbackEl.classList.add('wrong-feedback');
+                characterEl.classList.add('sad');
+                
+                // تقليل النجوم إذا كانت أكبر من 0
+                if (stars > 0) {
+                    stars--;
+                    updateStars();
+                }
+            }
+            
+            // عرض زر التالي
+            nextBtnEl.style.display = 'block';
+        }
+
+        // الانتقال إلى السؤال التالي
+        function nextQuestion() {
+            currentQuestion++;
+            
+if (currentQuestion < selectedQuestions.length) {
+                showQuestion();
+            } else {
+                // انتهت الأسئلة
+                endGame();
+            }
+        }
+// إعادة تعيين النجوم
+function resetStars() {
+    stars = 0;
+    starEls.forEach(star => star.classList.remove('filled'));
+}
+        // تحديث عرض النجوم
+        function updateStars() {
+            starEls.forEach((star, index) => {
+                if (index < stars) {
+                    star.classList.add('filled');
+                } else {
+                    star.classList.remove('filled');
+                }
+            });
+        }
+
+        // نهاية اللعبة
+        function endGame() {
+            infoTextEl.textContent = `تهانينا! لقد أكملت جميع الأسئلة. نقاطك النهائية: ${score}`;
+            questionEl.textContent = 'هل تريد اللعب مرة أخرى؟';
+            
+            // إخفاء الخيارات
+            optionsEl.innerHTML = '';
+            
+            // إضافة زر إعادة اللعبة
+            const restartBtn = document.createElement('button');
+            restartBtn.className = 'option';
+            restartBtn.textContent = 'اللعب مرة أخرى';
+            restartBtn.onclick = restartGame;
+            optionsEl.appendChild(restartBtn);
+            
+            // إخفاء زر التالي
+            nextBtnEl.style.display = 'none';
+            
+            // عرض جميع النجوم المكتسبة
+            updateStars();
+            
+            // عرض الشخصية سعيدة
+            characterEl.className = 'character happy';
+        }
+
+        // إعادة تشغيل اللعبة
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            stars = 0;
+            scoreEl.textContent = '0';
+            optionsEl.innerHTML = `
+                <button class="option" onclick="checkAnswer(0)"></button>
+                <button class="option" onclick="checkAnswer(1)"></button>
+            `;
+            showQuestion();
+        }
+
+        // بدء اللعبة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

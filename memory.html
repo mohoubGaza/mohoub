@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة الذاكرة للأطفال</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f4ff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #5d5bff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .cards-grid {
+            display: grid;
+            gap: 12px;
+            margin: 25px 0;
+            justify-content: center;
+        }
+        .card {
+            width: 100%;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            cursor: pointer;
+            transition: all 0.3s;
+            transform-style: preserve-3d;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 3px solid white;
+        }
+        /* ألوان مختلفة لكل بطاقة */
+        .card:nth-child(1) { background-color: #ff9aa2; }
+        .card:nth-child(2) { background-color: #ffb7b2; }
+        .card:nth-child(3) { background-color: #ffdac1; }
+        .card:nth-child(4) { background-color: #e2f0cb; }
+        .card:nth-child(5) { background-color: #b5ead7; }
+        .card:nth-child(6) { background-color: #c7ceea; }
+        .card:nth-child(7) { background-color: #a2d7ff; }
+        .card:nth-child(8) { background-color: #ffc8dd; }
+        .card:nth-child(9) { background-color: #cdb4db; }
+        .card:nth-child(10) { background-color: #ffafcc; }
+        .card:nth-child(11) { background-color: #bde0fe; }
+        .card:nth-child(12) { background-color: #a2d2ff; }
+        .card:nth-child(13) { background-color: #ffc8dd; }
+        .card:nth-child(14) { background-color: #ffafcc; }
+        .card:nth-child(15) { background-color: #cdb4db; }
+        .card:nth-child(16) { background-color: #a2d7ff; }
+
+        .card.flipped {
+            background-color: white;
+            transform: rotateY(180deg);
+        }
+        .card.matched {
+            background-color: #55efc4;
+            cursor: default;
+        }
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        button {
+            background-color: #5d5bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .help-btn {
+            background-color: #ff7675;
+        }
+        .stars {
+            font-size: 2.5em;
+            margin: 15px 0;
+            color: #fdcb6e;
+        }
+        .level-selector {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .level-btn {
+            background-color: #00cec9;
+        }
+        @media (max-width: 600px) {
+            .card {
+                height: 70px;
+                font-size: 2.5em;
+            }
+        }
+        .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 50px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>لعبة الذاكرة 🧠✨</h1>
+        <p>اختر مستوى الصعوبة وابدأ اللعب!</p>
+        
+        <div class="level-selector">
+            <button class="level-btn" onclick="startGame(2, 2)">سهل (4 أزواج)</button>
+            <button class="level-btn" onclick="startGame(2, 4)">متوسط (8 أزواج)</button>
+            <button class="level-btn" onclick="startGame(4, 4)">صعب (16 زوج)</button>
+        </div>
+        
+        <div class="stars">⭐⭐⭐</div>
+        <div class="cards-grid" id="cards-grid"></div>
+        
+        <div class="controls">
+            <button onclick="startGame(currentCols, currentRows)">إعادة اللعب</button>
+            <button class="help-btn" onclick="showHint()">مساعدة</button>
+        </div>
+        
+        <audio id="flip-sound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+        <audio id="match-sound" src="https://www.soundjay.com/buttons/sounds/button-02.mp3"></audio>
+        <audio id="win-sound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3"></audio>
+    </div>
+
+    <script>
+        // المتغيرات الأساسية
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let currentCols = 2;
+        let currentRows = 2;
+        let stars = 3;
+        let moves = 0;
+        
+        // صور للأزواج (إيموجيات متنوعة)
+        const images = [
+            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+            '🍎', '🍌', '🍒', '🍓', '🍐', '🍊', '🍋', '🍉',
+            '🚗', '✈️', '🚲', '🚀', '🚑', '🚒', '🚜', '🚁',
+            '⭐', '🌈', '☀️', '🌙', '⚡', '❄️', '💧', '🔥'
+        ];
+        
+        // تهيئة اللعبة
+        function startGame(cols, rows) {
+            loadStars();
+            currentCols = cols;
+            currentRows = rows;
+            const totalPairs = cols * rows / 2;
+            matchedPairs = 0;
+            moves = 0;
+            stars = 3;
+            flippedCards = [];
+            
+            document.querySelector('.stars').textContent = '⭐⭐⭐';
+            document.getElementById('cards-grid').innerHTML = '';
+            
+            // إنشاء مجموعة الأزواج
+            const pairs = images.slice(0, totalPairs);
+            cards = [...pairs, ...pairs];
+            
+            // خلط الأوراق
+            shuffleArray(cards);
+            
+            // عرض الأوراق
+            renderCards(cols, rows);
+        }
+        
+        // خلط الأوراق
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        // عرض الأوراق
+        function renderCards(cols, rows) {
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+            
+            // تحديد عدد الأعمدة والصفوف
+            grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+                cardElement.dataset.index = index;
+                cardElement.dataset.value = card;
+                cardElement.addEventListener('click', flipCard);
+                
+                // إضافة محتوى الورقة (ستظهر عند التقليب)
+                const content = document.createElement('div');
+                content.textContent = card;
+                content.style.display = 'none';
+                cardElement.appendChild(content);
+                
+                grid.appendChild(cardElement);
+            });
+        }
+        
+        // قلب الورقة
+        function flipCard() {
+            const card = this;
+            
+            // لا تفعل شيئا إذا كانت الورقة مقلوبة أو مطابقة
+            if (card.classList.contains('flipped')) return;
+            if (flippedCards.length >= 2) return;
+            
+            // تشغيل صوت القلب
+            document.getElementById('flip-sound').play();
+            
+            // عرض محتوى الورقة
+            card.classList.add('flipped');
+            card.querySelector('div').style.display = 'block';
+            flippedCards.push(card);
+            
+            // التحقق من التطابق
+            if (flippedCards.length === 2) {
+                moves++;
+                updateStars();
+                
+                if (flippedCards[0].dataset.value === flippedCards[1].dataset.value) {
+                    // تطابق ناجح
+                    setTimeout(() => {
+                        flippedCards.forEach(c => {
+                            c.classList.add('matched');
+                            c.removeEventListener('click', flipCard);
+                        });
+                        
+                        // تشغيل صوت المطابقة هنا
+                        document.getElementById('match-sound').play();
+                        
+                        flippedCards = [];
+                        matchedPairs++;
+                        
+                        // التحقق من الفوز
+                        // التحقق من الفوز
+if (matchedPairs === (currentCols * currentRows / 2)) {
+    setTimeout(() => {
+        document.getElementById('win-sound').play();
+        showNotification(`مبروك! فزت ب${stars} نجوم! 🎉`);
+    }, 500);
+}
+                    }, 500);
+                } else {
+    // لا تطابق ⇒ نقص نجمة
+  if (stars > 0) {
+    stars--;
+    updateStars();
+
+    if (stars === 0) {
+        setTimeout(() => {
+            showNotification("انتهت النجوم! إعادة اللعبة 🔁");
+            startGame(currentCols, currentRows);
+        }, 1000); // مهلة صغيرة قبل الإعادة
+    }
+}
+
+    setTimeout(() => {
+        flippedCards.forEach(c => {
+            c.classList.remove('flipped');
+            c.querySelector('div').style.display = 'none';
+        });
+        flippedCards = [];
+    }, 1000);
+}
+
+            }
+        }
+        
+      // تحديث النجوم حسب الأداء
+function updateStars() {
+    document.querySelector('.stars').textContent = '⭐'.repeat(stars);
+}
+
+function showNotification(message) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.opacity = '1';
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+    }, 2000);
+}
+
+// تحميل النجوم المحفوظة عند بدء اللعبة
+function loadStars() {
+    const savedStars = localStorage.getItem('memoryGameStars');
+    if (savedStars) {
+        stars = parseInt(savedStars);
+        document.querySelector('.stars').textContent = '⭐'.repeat(stars);
+    }
+}
+        
+        // عرض مساعدة (تلميح)
+        function showHint() {
+            if (flippedCards.length !== 0) return;
+            
+            const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched):not(.flipped)'));
+            
+            if (unmatchedCards.length > 1) {
+                // إظهار زوجين غير متطابقين لمدة ثانية
+                const card1 = unmatchedCards[0];
+                const card2 = unmatchedCards.find(c => 
+                    c.dataset.value === card1.dataset.value && c !== card1
+                ) || unmatchedCards[1];
+                
+                card1.classList.add('flipped');
+                card1.querySelector('div').style.display = 'block';
+                card2.classList.add('flipped');
+                card2.querySelector('div').style.display = 'block';
+                
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card1.querySelector('div').style.display = 'none';
+                    card2.classList.remove('flipped');
+                    card2.querySelector('div').style.display = 'none';
+                }, 1000);
+            }
+        }
+        
+        // بدء اللعبة تلقائياً بالمستوى السهل
+        window.onload = () => startGame(2, 2);
+    </script>
+    <div id="notification" class="notification"></div>
+</body>
+</html>
