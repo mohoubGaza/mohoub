@@ -276,6 +276,85 @@ header, section {
       }
     }
 
+    /* نافذة الدخول */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .login-box {
+      background-color: #f9e79f;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      animation: bounceIn 0.5s;
+    }
+    
+    .login-box h2 {
+      font-family: 'Cairo Play', cursive;
+      color: #d35400;
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+    
+    .login-box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: 2px solid #f8c471;
+      font-size: 1.2rem;
+      text-align: center;
+    }
+    
+    .login-box button {
+      background-color: #a9dfbf;
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 30px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .login-box button:hover {
+      background-color: #fadbd8;
+      transform: scale(1.05);
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      margin-top: 10px;
+      font-weight: bold;
+      display: none;
+    }
+    
+    @keyframes bounceIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
     @media (max-width: 600px) {
       header h1 {
         font-size: 2.6rem;
@@ -293,6 +372,14 @@ header, section {
       .game-item {
         font-size: 1.1rem;
       }
+      
+      .login-box {
+        padding: 20px;
+      }
+      
+      .login-box h2 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
@@ -303,11 +390,22 @@ header, section {
   <img src="https://cdn-icons-png.flaticon.com/512/616/616527.png" class="shape" style="left: 70%;" />
 </div>
 
+<!-- نافذة الدخول -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <h2>مرحباً بالطفل الموهوب!</h2>
+    <p>من فضلك أدخل كود الدخول للوصول إلى الألعاب التعليمية</p>
+    <input type="password" id="accessCode" placeholder="أدخل كود الدخول هنا" />
+    <button onclick="checkAccessCode()">دخول</button>
+    <p class="error-message" id="errorMessage">كود الدخول غير صحيح، حاول مرة أخرى!</p>
+  </div>
+</div>
 
   <header>
     <h1>الطفل الموهوب</h1>
     <p>مرحبًا بكم في عالم التعلم الممتع! ✨  
     نحن هنا لنقدم لأطفالكم كتيبات تعليمية وألعاب تفاعلية تزرع فيهم حب المعرفة والاستكشاف.</p>
+    <p>تم تطوير الكراسة والنظام بواسطة : أمير أسامة | واتس اب <a>https://wa.me/+970592790156</a></p>
    
   </header>
 
@@ -344,6 +442,32 @@ header, section {
       }
     });
   });
+  
+  // كود التحقق من كود الدخول
+  function checkAccessCode() {
+    const accessCode = document.getElementById('accessCode').value;
+    const validCodes = ['0101', '01010', '010101'];
+    const errorMessage = document.getElementById('errorMessage');
+    const loginOverlay = document.getElementById('loginOverlay');
+    
+    if (validCodes.includes(accessCode)) {
+      loginOverlay.style.display = 'none';
+      document.body.style.overflow = 'auto'; // إعادة تفعيل التمرير
+    } else {
+      errorMessage.style.display = 'block';
+      document.getElementById('accessCode').value = '';
+    }
+  }
+  
+  // إضافة إمكانية الضغط على Enter للدخول
+  document.getElementById('accessCode').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      checkAccessCode();
+    }
+  });
+  
+  // منع التمرير أثناء عرض نافذة الدخول
+  document.body.style.overflow = 'hidden';
 </script>
 
 </body>
