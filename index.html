@@ -276,6 +276,112 @@ header, section {
       }
     }
 
+    /* نافذة التحقق */
+    .access-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      font-family: 'Cairo Play', cursive;
+    }
+    
+    .access-box {
+      background-color: #f9e79f;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      animation: bounceIn 0.6s;
+      border: 4px solid #fadbd8;
+    }
+    
+    .access-box h2 {
+      color: #d35400;
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    
+    .access-box p {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    .access-input {
+      width: 100%;
+      padding: 15px;
+      border-radius: 50px;
+      border: 3px solid #a9dfbf;
+      font-size: 1.2rem;
+      text-align: center;
+      margin-bottom: 20px;
+      font-family: 'Tajawal', sans-serif;
+    }
+    
+    .access-btn {
+      background-color: #a9dfbf;
+      color: #000;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+      font-family: 'Cairo Play', cursive;
+    }
+    
+    .access-btn:hover {
+      background-color: #fadbd8;
+      transform: scale(1.05);
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 10px;
+      display: none;
+      font-size: 1.1rem;
+    }
+    
+    @keyframes bounceIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes shake {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      20%, 60% {
+        transform: translateX(-10px);
+      }
+      40%, 80% {
+        transform: translateX(10px);
+      }
+    }
+    
+    .shake {
+      animation: shake 0.5s;
+    }
+
     @media (max-width: 600px) {
       header h1 {
         font-size: 2.6rem;
@@ -293,10 +399,29 @@ header, section {
       .game-item {
         font-size: 1.1rem;
       }
+      
+      .access-box {
+        padding: 20px;
+      }
+      
+      .access-box h2 {
+        font-size: 1.6rem;
+      }
     }
   </style>
 </head>
 <body>
+ <!-- نافذة التحقق -->
+ <div class="access-modal" id="accessModal">
+  <div class="access-box">
+    <h2>مرحباً صديقي الصغير! 🎈</h2>
+    <p>أدخل كود الدخول السحري للوصول إلى عالم الألعاب المدهش</p>
+    <input type="password" class="access-input" id="accessCode" placeholder="أدخل الكود هنا">
+    <button class="access-btn" onclick="checkAccess()">دخول</button>
+    <div class="error-message" id="errorMessage">كود الدخول غير صحيح! حاول مرة أخرى</div>
+  </div>
+</div>
+
  <div class="floating-shapes">
   <img src="https://cdn-icons-png.flaticon.com/512/616/616408.png" class="shape" style="left: 10%;" />
   <img src="https://cdn-icons-png.flaticon.com/512/616/616554.png" class="shape" style="left: 40%;" />
@@ -344,6 +469,35 @@ header, section {
       }
     });
   });
+  
+  // التحقق من كود الدخول
+  function checkAccess() {
+    const accessCode = document.getElementById('accessCode').value;
+    const errorMessage = document.getElementById('errorMessage');
+    const accessBox = document.querySelector('.access-box');
+    const validCodes = ['0101', '010101', '010'];
+    
+    if (validCodes.includes(accessCode)) {
+      document.getElementById('accessModal').style.display = 'none';
+      document.body.style.overflow = 'auto'; // إعادة تفعيل التمرير
+    } else {
+      errorMessage.style.display = 'block';
+      accessBox.classList.add('shake');
+      setTimeout(() => {
+        accessBox.classList.remove('shake');
+      }, 500);
+    }
+  }
+  
+  // السماح بالضغط على زر Enter للدخول
+  document.getElementById('accessCode').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      checkAccess();
+    }
+  });
+  
+  // إخفاء التمرير حتى يتم التحقق
+  document.body.style.overflow = 'hidden';
 </script>
 
 </body>
